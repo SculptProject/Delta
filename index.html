@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#EDF0EA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E1A15" media="(prefers-color-scheme: dark)">
+<meta name="description" content="Quelques minutes de calcul mental par jour, orienté finance.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Delta">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<title>Delta — calcul mental</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EDF0EA; --surface:#F8F9F5; --ink:#13241D; --muted:#5F6E65; --line:#D4DBD0;
+  --accent:#8E6E27; --accent-soft:#E7DFC9; --good:#2D7651; --good-soft:#D6E8DC; --bad:#B0463A; --bad-soft:#F2DBD6;
+  --key:#F8F9F5; --key-press:#E1E6DD;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1A15; --surface:#15241D; --ink:#E7ECE5; --muted:#8C9E93; --line:#24372D;
+    --accent:#D2AE62; --accent-soft:#2E2A1C; --good:#64C090; --good-soft:#173528; --bad:#E28273; --bad-soft:#3A1F1B;
+    --key:#15241D; --key-press:#1E3128; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1A15; --surface:#15241D; --ink:#E7ECE5; --muted:#8C9E93; --line:#24372D;
+  --accent:#D2AE62; --accent-soft:#2E2A1C; --good:#64C090; --good-soft:#173528; --bad:#E28273; --bad-soft:#3A1F1B;
+  --key:#15241D; --key-press:#1E3128; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0;height:100%;background:var(--bg);color:var(--ink);
+  font-family:"Geist",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-feature-settings:"tnum" 1,"ss01" 1;
+  -webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;
+}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;touch-action:manipulation}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.app{max-width:440px;height:100%;margin:0 auto;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;padding:20px 22px 22px;opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .28s ease,transform .28s ease;overflow-y:auto}
+.screen.on{opacity:1;pointer-events:auto;transform:none}
+@media (prefers-reduced-motion:reduce){.screen{transition:none;transform:none}}
+
+/* ---------- Home ---------- */
+.top{display:flex;align-items:center;justify-content:space-between;min-height:40px}
+.brand{font-weight:500;font-size:17px;letter-spacing:-.01em}
+.brand i{font-style:normal;color:var(--accent)}
+.icon-btn{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:var(--muted)}
+.icon-btn:active{background:var(--key-press)}
+.icon-btn svg{width:20px;height:20px}
+
+.hero{margin-top:44px}
+.streak-num{font-size:112px;line-height:.9;font-weight:300;letter-spacing:-.05em}
+.streak-label{margin-top:10px;font-size:17px;color:var(--muted)}
+.streak-label b{color:var(--ink);font-weight:500}
+
+.week{display:flex;gap:8px;margin-top:30px}
+.day{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.dot{width:100%;height:6px;border-radius:3px;background:var(--line)}
+.day.done .dot{background:var(--accent)}
+.day.today{color:var(--ink);font-weight:500}
+
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;margin-top:36px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.stat{padding:16px 0}
+.stat+.stat{padding-left:16px;border-left:1px solid var(--line)}
+.stat-v{font-size:22px;font-weight:500;letter-spacing:-.02em}
+.stat-k{font-size:13px;color:var(--muted);margin-top:2px}
+
+.skills{margin-top:28px;display:flex;flex-direction:column;gap:12px}
+.skill{display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:baseline;font-size:14px}
+.skill-name{color:var(--ink)}
+.skill-lvl{color:var(--muted);font-size:13px}
+.bar{grid-column:1/-1;height:3px;border-radius:2px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ink);border-radius:2px;transition:width .6s ease}
+
+.spacer{flex:1;min-height:28px}
+.cta{width:100%;height:60px;border-radius:18px;background:var(--ink);color:var(--bg);font-size:17px;font-weight:500;letter-spacing:-.01em;display:flex;align-items:center;justify-content:center;gap:10px;transition:transform .12s ease}
+.cta:active{transform:scale(.98)}
+.start{width:100%;display:flex;align-items:center;gap:16px;padding:10px 10px 10px 22px;min-height:76px;border-radius:24px;background:var(--ink);color:var(--bg);text-align:left;transition:transform .15s ease}
+.start:active{transform:scale(.985)}
+.start-txt{flex:1;display:flex;flex-direction:column;gap:3px}
+.start-title{font-size:19px;font-weight:500;letter-spacing:-.02em}
+.start-meta{font-size:14px;opacity:.6}
+.start-go{width:56px;height:56px;border-radius:18px;background:var(--accent);color:var(--ink);display:grid;place-items:center;flex:none;transition:transform .2s ease}
+.start:active .start-go{transform:translateX(3px)}
+.start-go svg{width:22px;height:22px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .start-go{color:#0E1A15}}
+:root[data-theme="dark"] .start-go{color:#0E1A15}
+.ghost{width:100%;height:48px;margin-top:8px;border-radius:14px;color:var(--muted);font-size:15px}
+
+/* ---------- Session ---------- */
+.s-top{display:flex;align-items:center;gap:14px;min-height:40px}
+.progress{flex:1;height:4px;border-radius:2px;background:var(--line);overflow:hidden}
+.progress i{display:block;height:100%;background:var(--ink);width:0;transition:width .3s ease}
+.count{font-size:14px;color:var(--muted);min-width:44px;text-align:right}
+
+.q-wrap{flex:1;display:flex;flex-direction:column;justify-content:center;min-height:200px}
+.q-cat{font-size:14px;color:var(--accent);font-weight:500}
+.q-text{margin-top:12px;font-size:clamp(34px,10vw,46px);line-height:1.08;font-weight:400;letter-spacing:-.03em;word-break:break-word}
+.q-text.long{font-size:clamp(22px,6.4vw,28px);line-height:1.25;letter-spacing:-.015em}
+.answer{margin-top:26px;display:flex;align-items:baseline;gap:8px;min-height:64px;border-bottom:1.5px solid var(--line);padding-bottom:10px;transition:border-color .2s}
+.ans-val{font-size:48px;font-weight:300;letter-spacing:-.03em;line-height:1}
+.ans-val.empty{color:var(--line)}
+.caret{width:2px;height:40px;background:var(--accent);align-self:center;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.ans-unit{font-size:24px;color:var(--muted);margin-left:auto}
+.answer.ok{border-color:var(--good)}
+.answer.ok .ans-val{color:var(--good)}
+.answer.ko{border-color:var(--bad)}
+.answer.ko .ans-val{color:var(--bad);text-decoration:line-through;text-decoration-thickness:2px}
+
+.feedback{margin-top:16px;min-height:76px;font-size:15px;line-height:1.45;color:var(--muted)}
+.fb-answer{font-size:17px;color:var(--ink);font-weight:500}
+.fb-tip{margin-top:4px}
+
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.key{height:58px;border-radius:14px;background:var(--key);font-size:24px;font-weight:400;display:grid;place-items:center;border:1px solid var(--line);user-select:none;-webkit-user-select:none;transition:background .08s}
+.key:active,.key.press{background:var(--key-press)}
+.key.fn{font-size:17px;color:var(--muted)}
+.key svg{width:24px;height:24px}
+.pad-row{display:grid;grid-template-columns:1fr 2fr;gap:8px;margin-top:8px}
+.key.go{background:var(--ink);color:var(--bg);border-color:var(--ink);font-size:17px;font-weight:500}
+.key.go:active{opacity:.85}
+.key.skip{font-size:15px;color:var(--muted)}
+
+/* ---------- Results ---------- */
+.r-score{margin-top:48px;font-size:112px;font-weight:300;letter-spacing:-.05em;line-height:.9}
+.r-score span{color:var(--muted);font-size:48px;letter-spacing:-.02em}
+.r-msg{margin-top:12px;font-size:17px;color:var(--muted);max-width:30ch;line-height:1.4}
+.r-list{margin-top:28px;border-top:1px solid var(--line)}
+.r-item{display:flex;justify-content:space-between;gap:16px;padding:13px 0;border-bottom:1px solid var(--line);font-size:15px}
+.r-item .q{color:var(--muted)}
+.r-item .a{font-weight:500;white-space:nowrap}
+.r-title{margin-top:28px;font-size:15px;font-weight:500}
+
+/* ---------- Settings sheet ---------- */
+.scrim{position:fixed;inset:0;background:rgba(10,20,15,.35);opacity:0;pointer-events:none;transition:opacity .25s;z-index:20}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:50%;bottom:0;width:100%;max-width:440px;transform:translate(-50%,100%);background:var(--surface);border-radius:24px 24px 0 0;padding:10px 22px calc(26px + env(safe-area-inset-bottom,0px));z-index:21;transition:transform .32s cubic-bezier(.2,.8,.2,1);max-height:88vh;overflow-y:auto}
+.sheet.on{transform:translate(-50%,0)}
+@media (prefers-reduced-motion:reduce){.sheet,.scrim{transition:none}}
+.grab{width:36px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 18px}
+.sheet h2{font-size:22px;font-weight:500;letter-spacing:-.02em;margin:0 0 8px}
+.group{padding:18px 0;border-bottom:1px solid var(--line)}
+.group:last-child{border-bottom:0}
+.g-title{font-size:15px;font-weight:500}
+.g-sub{font-size:13px;color:var(--muted);margin-top:3px;line-height:1.4}
+.seg{display:flex;background:var(--bg);border-radius:12px;padding:3px;margin-top:12px}
+.seg button{flex:1;height:38px;border-radius:10px;font-size:15px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);font-weight:500;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;font-size:15px}
+.switch{width:46px;height:28px;border-radius:14px;background:var(--line);position:relative;transition:background .2s;flex:none}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.switch[aria-checked="true"]{background:var(--ink)}
+.switch[aria-checked="true"]::after{transform:translateX(18px)}
+.row-inline{display:flex;gap:10px;margin-top:12px;align-items:center}
+.time-input{height:44px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:17px;padding:0 12px;width:120px}
+.btn-line{height:44px;border-radius:12px;border:1px solid var(--line);padding:0 16px;font-size:15px;font-weight:500;flex:1}
+.btn-line:active{background:var(--key-press)}
+.danger{color:var(--bad);font-size:15px;padding:6px 0}
+.note{font-size:13px;color:var(--muted);margin-top:10px;line-height:1.45}
+
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:14px;font-size:14px;opacity:0;transition:all .25s;z-index:30;pointer-events:none;max-width:90vw;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HOME -->
+  <section class="screen on" id="home" aria-label="Accueil">
+    <div class="top">
+      <div class="brand">Delta<i>.</i></div>
+      <button class="icon-btn" id="openSettings" aria-label="Réglages">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+      </button>
+    </div>
+
+    <div class="hero">
+      <div class="streak-num" id="streakNum">0</div>
+      <div class="streak-label" id="streakLabel">jour d’affilée</div>
+    </div>
+
+    <div class="week" id="week"></div>
+
+    <div class="stats">
+      <div class="stat"><div class="stat-v" id="stAcc">—</div><div class="stat-k">Précision</div></div>
+      <div class="stat"><div class="stat-v" id="stTime">—</div><div class="stat-k">Par calcul</div></div>
+      <div class="stat"><div class="stat-v" id="stTotal">0</div><div class="stat-k">Calculs faits</div></div>
+    </div>
+
+    <div class="skills" id="skills"></div>
+
+    <div class="spacer"></div>
+    <button class="start" id="startBtn">
+      <span class="start-txt"><span class="start-title">Commencer</span><span class="start-meta" id="startMeta">10 calculs, environ 2 min</span></span>
+      <span class="start-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span>
+    </button>
+  </section>
+
+  <!-- SESSION -->
+  <section class="screen" id="session" aria-label="Session">
+    <div class="s-top">
+      <button class="icon-btn" id="quitBtn" aria-label="Quitter la session">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+      <div class="progress"><i id="prog"></i></div>
+      <div class="count" id="count">1/10</div>
+    </div>
+
+    <div class="q-wrap">
+      <div class="q-cat" id="qCat"></div>
+      <div class="q-text" id="qText" aria-live="polite"></div>
+      <div class="answer" id="answer">
+        <span class="ans-val empty" id="ansVal">0</span><span class="caret" id="caret"></span>
+        <span class="ans-unit" id="ansUnit"></span>
+      </div>
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+    </div>
+
+    <div>
+      <div class="pad" id="pad">
+        <button class="key" data-k="7">7</button><button class="key" data-k="8">8</button><button class="key" data-k="9">9</button>
+        <button class="key" data-k="4">4</button><button class="key" data-k="5">5</button><button class="key" data-k="6">6</button>
+        <button class="key" data-k="1">1</button><button class="key" data-k="2">2</button><button class="key" data-k="3">3</button>
+        <button class="key fn" data-k="-" aria-label="Moins">±</button><button class="key" data-k="0">0</button><button class="key fn" data-k="," aria-label="Virgule">,</button>
+      </div>
+      <div class="pad-row">
+        <button class="key fn" data-k="del" aria-label="Effacer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5h11v14H9l-6-7z"/><path d="M12.5 9.5l5 5M17.5 9.5l-5 5"/></svg>
+        </button>
+        <button class="key go" id="goBtn" data-k="go">Valider</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULTS -->
+  <section class="screen" id="results" aria-label="Résultats">
+    <div class="top"><div class="brand">Delta<i>.</i></div></div>
+    <div class="r-score" id="rScore">0<span>/10</span></div>
+    <div class="r-msg" id="rMsg"></div>
+    <div class="stats" style="margin-top:28px">
+      <div class="stat"><div class="stat-v" id="rAcc">—</div><div class="stat-k">Précision</div></div>
+      <div class="stat"><div class="stat-v" id="rTime">—</div><div class="stat-k">Par calcul</div></div>
+      <div class="stat"><div class="stat-v" id="rStreak">—</div><div class="stat-k">Série</div></div>
+    </div>
+    <div id="rMistakes"></div>
+    <div class="spacer"></div>
+    <button class="cta" id="againBtn">Encore une session</button>
+    <button class="ghost" id="homeBtn">Retour à l’accueil</button>
+  </section>
+</div>
+
+<!-- SETTINGS -->
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Réglages">
+  <div class="grab"></div>
+  <h2>Réglages</h2>
+
+  <div class="group">
+    <div class="g-title">Longueur d’une session</div>
+    <div class="g-sub">Cinq calculs tiennent en moins de deux minutes.</div>
+    <div class="seg" id="lenSeg">
+      <button data-v="5">5</button><button data-v="10">10</button><button data-v="20">20</button>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="g-title">Types de calcul</div>
+    <div class="g-sub">La difficulté de chaque type s’ajuste à tes résultats.</div>
+    <div id="catToggles" style="margin-top:6px"></div>
+  </div>
+
+  <div class="group">
+    <div class="g-title">Rappel quotidien</div>
+    <div class="g-sub">Ajoute un événement récurrent à ton agenda : ton téléphone te notifiera chaque jour à l’heure choisie.</div>
+    <div class="row-inline">
+      <input type="time" class="time-input" id="remTime" value="08:30" aria-label="Heure du rappel">
+      <button class="btn-line" id="icsBtn">Ajouter à l’agenda</button>
+    </div>
+    <div class="note">Astuce : ouvre cette page dans Safari, touche Partager puis « Sur l’écran d’accueil » pour l’avoir comme une vraie app.</div>
+  </div>
+
+  <div class="group">
+    <button class="danger" id="resetBtn">Effacer mes statistiques</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+/* ================== Utils ================== */
+const $ = id => document.getElementById(id);
+const R = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
+const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+const round = (x,d=6) => Math.round(x*10**d)/10**d;
+const fmt = (n, maxDec=4) => {
+  const s = Number(round(n,maxDec)).toLocaleString('fr-FR',{maximumFractionDigits:maxDec});
+  return s.replace(/\u202f/g,'\u2009').replace(/\u00a0/g,'\u2009');
+};
+const dayKey = (d=new Date()) => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const addDays = (d,n) => { const x=new Date(d); x.setDate(x.getDate()+n); return x; };
+const toast = (msg) => { const t=$('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('on'),2400); };
+
+/* ================== Question generators ================== */
+// Each returns {q, a, unit?, tol?, tip, long?}
+const CATS = {
+  add: { name:'Additions et soustractions', short:'Additions', gen(l){
+    if(l===1){ const a=R(12,99), b=R(12,99);
+      return Math.random()<.6 ? {q:`${a} + ${b}`, a:a+b, tip:`Ajoute d’abord les dizaines, puis les unités.`}
+                              : {q:`${Math.max(a,b)} − ${Math.min(a,b)}`, a:Math.abs(a-b), tip:`Complète jusqu’à la dizaine suivante, puis compte ce qui reste.`}; }
+    if(l===2){ const a=R(20,980)*5, b=R(20,980)*5;
+      return Math.random()<.55 ? {q:`${fmt(a)} + ${fmt(b)}`, a:a+b, tip:`Sépare milliers et centaines : additionne chaque bloc puis assemble.`}
+                               : {q:`${fmt(Math.max(a,b))} − ${fmt(Math.min(a,b))}`, a:Math.abs(a-b), tip:`Arrondis le nombre retranché à la centaine, puis corrige l’écart.`}; }
+    const a=R(1000,9999)/100, b=R(1000,9999)/100;
+    return Math.random()<.5 ? {q:`${fmt(a)} + ${fmt(b)}`, a:round(a+b,2), tip:`Traite la partie entière, puis les centimes, et reporte la retenue.`}
+                            : {q:`${fmt(Math.max(a,b))} − ${fmt(Math.min(a,b))}`, a:round(Math.abs(a-b),2), tip:`Soustrais les entiers, puis les centimes ; emprunte 1 si besoin.`};
+  }},
+  mul: { name:'Multiplications', short:'Multiplications', gen(l){
+    if(l===1){ const a=R(12,99), b=R(3,9); return {q:`${a} × ${b}`, a:a*b, tip:`${a} × ${b} = ${Math.floor(a/10)*10} × ${b} + ${a%10} × ${b}.`}; }
+    if(l===2){
+      const t = pick(['25','x5','gen']);
+      if(t==='25'){ const b=R(3,39)*4; return {q:`25 × ${b}`, a:25*b, tip:`× 25, c’est × 100 puis ÷ 4.`}; }
+      if(t==='x5'){ const a=R(2,9)*10+5; return {q:`${a} × ${a}`, a:a*a, tip:`Carré d’un nombre en 5 : n × (n+1) suivi de 25.`}; }
+      const a=R(11,39), b=R(11,29); return {q:`${a} × ${b}`, a:a*b, tip:`Décompose : ${a} × ${b} = ${a} × ${Math.floor(b/10)*10} + ${a} × ${b%10}.`};
+    }
+    const t = pick(['dec','pct','big']);
+    if(t==='dec'){ const m=pick([1.5,2.5,0.25,0.75,1.25,0.4,0.6]), b=R(4,60)*20; return {q:`${fmt(m)} × ${fmt(b)}`, a:round(m*b), tip:`Transforme le décimal en fraction simple (0,25 = ¼, 1,5 = 3⁄2).`}; }
+    if(t==='pct'){ const m=pick([1.05,1.1,1.2,0.9,0.95,1.15]), b=R(2,40)*20; return {q:`${fmt(m)} × ${fmt(b)}`, a:round(m*b,2), tip:`${fmt(m)} × x = x ${m>1?'+':'−'} ${fmt(Math.abs(round((m-1)*100)))} % de x.`}; }
+    const a=R(11,99)*100, b=R(3,9); return {q:`${fmt(a)} × ${b}`, a:a*b, tip:`Calcule ${a/100} × ${b}, puis ajoute deux zéros.`};
+  }},
+  div: { name:'Divisions', short:'Divisions', gen(l){
+    if(l===1){ const b=R(3,9), a=b*R(4,30); return {q:`${a} ÷ ${b}`, a:a/b, tip:`Cherche le multiple de ${b} le plus proche, puis ajuste.`}; }
+    if(l===2){
+      if(Math.random()<.5){ const b=pick([12,15,16,24,25,40,50,75,125]), r=R(3,40), a=b*r; return {q:`${fmt(a)} ÷ ${b}`, a:r, tip: b===25||b===125||b===50||b===75 ? `Diviser par 25, c’est × 4 ÷ 100.` : `Divise en deux étapes : ${b} = ${b%3===0?`3 × ${b/3}`:`2 × ${b/2}`}.`}; }
+      const b=pick([4,8,16,3,6]), a=pick([100,1000,200,500,2000]); return {q:`${fmt(a)} ÷ ${b}`, a:round(a/b,2), tip:`Retiens les fractions : 1⁄8 = 0,125 ; 1⁄16 = 0,0625 ; 1⁄3 ≈ 0,333.`, tol:.01};
+    }
+    if(Math.random()<.5){ const d=pick([0.25,0.5,0.2,1.25,0.4]), a=R(3,60)*10; return {q:`${fmt(a)} ÷ ${fmt(d)}`, a:round(a/d,2), tip:`Diviser par ${fmt(d)}, c’est multiplier par ${fmt(1/d)}.`}; }
+    const b=R(11,19), a=b*R(12,90); return {q:`${fmt(a)} ÷ ${b}`, a:a/b, tip:`Encadre le quotient par des multiples ronds de ${b} (×10, ×50…).`};
+  }},
+  pct: { name:'Pourcentages', short:'Pourcentages', gen(l){
+    if(l===1){ const p=pick([10,20,25,50,5,1]), b=R(2,80)*20; return {q:`${p} % de ${fmt(b)}`, a:round(b*p/100,2), tip: p===25?`25 %, c’est un quart.`:p===5?`5 %, c’est la moitié de 10 %.`:`10 % : décale la virgule d’un rang.`}; }
+    if(l===2){
+      const t=pick(['of','up','down']);
+      if(t==='of'){ const p=pick([15,12.5,35,40,75,2.5,7.5]), b=R(2,40)*40; return {q:`${fmt(p)} % de ${fmt(b)}`, a:round(b*p/100,2), tip: p===15?`15 % = 10 % + 5 %.`:p===12.5?`12,5 % = 1⁄8.`:p===75?`75 % = ¾.`:`Pars de 10 % puis combine.`}; }
+      const p=pick([5,10,15,20,25,30]), b=R(2,50)*20;
+      if(t==='up') return {q:`${fmt(b)} + ${p} %`, a:round(b*(1+p/100),2), unit:'', tip:`Multiplie par ${fmt(1+p/100)}, ou ajoute ${p} % de ${fmt(b)}.`};
+      return {q:`${fmt(b)} − ${p} %`, a:round(b*(1-p/100),2), tip:`Multiplie par ${fmt(1-p/100)}, ou retire ${p} % de ${fmt(b)}.`};
+    }
+    const t=pick(['var','rev','pts']);
+    if(t==='var'){ const a=R(4,40)*5, p=pick([10,20,25,30,40,50,-10,-20,-25,-40,12,15]), b=round(a*(1+p/100),2);
+      return {q:`Passer de ${fmt(a)} à ${fmt(b)} : variation ?`, a:p, unit:'%', long:true, tip:`(arrivée − départ) ÷ départ = ${fmt(round(b-a,2))} ÷ ${fmt(a)}.`}; }
+    if(t==='rev'){ const p=pick([20,25,10,50]), base=R(2,40)*20, after=round(base*(1+p/100),2);
+      return {q:`Après une hausse de ${p} %, le prix est ${fmt(after)}. Prix initial ?`, a:base, long:true, tip:`Divise par ${fmt(1+p/100)} : on ne retire pas ${p} % de ${fmt(after)}.`}; }
+    const a=R(2,8), b=R(1,6); return {q:`+${a*10} % puis +${b*10} % : hausse totale ?`, a:round(((1+a/10)*(1+b/10)-1)*100,2), unit:'%', long:true, tip:`Les hausses se multiplient : ${fmt(1+a/10)} × ${fmt(1+b/10)} − 1.`};
+  }},
+  pow: { name:'Puissances et intérêts', short:'Puissances', gen(l){
+    if(l===1){ if(Math.random()<.5){ const n=R(11,25); return {q:`${n}²`, a:n*n, tip:`(a + b)² = a² + 2ab + b², avec a = ${Math.floor(n/10)*10}.`}; }
+      const n=R(3,12); return {q:`2<sup>${n}</sup>`, a:2**n, tip:`Repère : 2¹⁰ = 1 024.`}; }
+    if(l===2){
+      const t=pick(['g','cap','cube']);
+      if(t==='g'){ const g=pick([1.1,1.05,1.2,1.5,0.9,1.02]); return {q:`${fmt(g)}²`, a:round(g*g,4), tip:`(1 + r)² = 1 + 2r + r².`}; }
+      if(t==='cap'){ const c=pick([1000,2000,5000,10000]), r=pick([5,10,20]); return {q:`${fmt(c)} € placés à ${r} % pendant 2 ans`, a:round(c*(1+r/100)**2,2), unit:'€', long:true, tip:`Intérêts composés : ${fmt(c)} × ${fmt(1+r/100)}².`}; }
+      const n=R(2,9); return {q:`${n}³`, a:n**3, tip:`n³ = n² × n.`};
+    }
+    const t=pick(['72','g3','cap3']);
+    if(t==='72'){ const r=pick([2,3,4,6,8,9,12,18,24]); return {q:`À ${r} % par an, en combien d’années un capital double-t-il ?`, a:72/r, unit:'ans', long:true, tip:`Règle de 72 : 72 ÷ taux.`}; }
+    if(t==='g3'){ const g=pick([1.1,1.2,1.05]); return {q:`${fmt(g)}³`, a:round(g**3,6), tip:`(1 + r)³ ≈ 1 + 3r + 3r² + r³.`}; }
+    const c=pick([1000,10000]); return {q:`${fmt(c)} € placés à 10 % pendant 3 ans`, a:round(c*1.331,2), unit:'€', long:true, tip:`1,1³ = 1,331.`};
+  }},
+  frac: { name:'Fractions et ratios', short:'Fractions', gen(l){
+    const sets = {
+      1:[[1,2],[1,4],[3,4],[1,5],[2,5],[1,10],[3,5],[4,5]],
+      2:[[1,8],[3,8],[5,8],[1,3],[2,3],[1,20],[7,8],[3,20]],
+      3:[[1,6],[5,6],[1,7],[1,9],[1,12],[1,16],[3,16],[2,7]]
+    };
+    const [n,d]=pick(sets[l]); const exact=n/d*100; const approx = Math.abs(exact-round(exact,2))>1e-9;
+    return {q:`${n}⁄${d} en %${approx?' (au dixième)':''}`, a:approx?round(exact,1):exact, unit:'%', tol:approx?0.051:0, tip:`${n}⁄${d} = ${n} ÷ ${d} ≈ ${fmt(round(n/d,4))}.`};
+  }}
+};
+// fix dividend-yield generator answer (computed cleanly)
+const _fracGen = CATS.frac.gen;
+CATS.frac.gen = function(l){
+  if(l===3 && Math.random()<.35){
+    const y=pick([2,2.5,3,4,5,6,8]), price=pick([20,40,50,80,100,120,200]), div=round(price*y/100,2);
+    return {q:`Dividende de ${fmt(div)} € pour une action à ${fmt(price)} €. Rendement ?`, a:y, unit:'%', long:true, tip:`Rendement = dividende ÷ cours = ${fmt(div)} ÷ ${fmt(price)}.`};
+  }
+  return _fracGen(l);
+};
+const CAT_ORDER = ['add','mul','div','pct','pow','frac'];
+
+/* ================== State ================== */
+const LS_KEY='delta.state.v1';
+const defaultState = () => ({
+  v:1, updatedAt:0,
+  settings:{ len:10, cats:{add:true,mul:true,div:true,pct:true,pow:true,frac:true}, rem:'08:30' },
+  days:{},            // dayKey -> sessions count
+  total:0, correct:0, ms:0,
+  cats:Object.fromEntries(CAT_ORDER.map(c=>[c,{lvl:1,xp:0,n:0,ok:0,recent:[]}]))
+});
+let S = defaultState();
+const merge = (raw) => {
+  const d=defaultState(); if(!raw||typeof raw!=='object') return d;
+  const s={...d,...raw, settings:{...d.settings,...(raw.settings||{}), cats:{...d.settings.cats,...((raw.settings||{}).cats||{})}}, cats:{...d.cats}};
+  for(const c of CAT_ORDER) s.cats[c]={...d.cats[c],...((raw.cats||{})[c]||{})};
+  s.days = raw.days||{};
+  return s;
+};
+try{ const raw=localStorage.getItem(LS_KEY)||localStorage.getItem('marge.state.v1'); if(raw) S=merge(JSON.parse(raw)); }catch(e){}
+
+function save(){
+  S.updatedAt=Date.now();
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(S)); }catch(e){}
+}
+
+/* ================== Streak ================== */
+function streak(){
+  let n=0, d=new Date();
+  if(!S.days[dayKey(d)]) d=addDays(d,-1);
+  while(S.days[dayKey(d)]){ n++; d=addDays(d,-1); }
+  return n;
+}
+
+/* ================== Navigation ================== */
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id)); }
+
+/* ================== Home ================== */
+function renderHome(){
+  const st=streak(), doneToday=!!S.days[dayKey()];
+  $('streakNum').textContent=st;
+  $('streakLabel').innerHTML = st===0 ? 'Aucune série en cours. Une session suffit pour la lancer.'
+    : `${st>1?'jours':'jour'} d’affilée${doneToday?'. <b>Fait pour aujourd’hui.</b>':'. <b>Garde la série en jouant aujourd’hui.</b>'}`;
+  const names=['L','M','M','J','V','S','D'];
+  const w=$('week'); w.innerHTML='';
+  for(let i=6;i>=0;i--){
+    const d=addDays(new Date(),-i), k=dayKey(d);
+    const el=document.createElement('div');
+    el.className='day'+(S.days[k]?' done':'')+(i===0?' today':'');
+    el.innerHTML=`<div class="dot"></div><span>${names[(d.getDay()+6)%7]}</span>`;
+    w.appendChild(el);
+  }
+  $('stAcc').textContent = S.total? Math.round(S.correct/S.total*100)+' %' : '—';
+  $('stTime').textContent = S.total? fmt(S.ms/S.total/1000,1)+' s' : '—';
+  $('stTotal').textContent = fmt(S.total);
+  const sk=$('skills'); sk.innerHTML='';
+  CAT_ORDER.filter(c=>S.settings.cats[c]).forEach(c=>{
+    const cs=S.cats[c]; const pct=Math.min(100,((cs.lvl-1)*100 + cs.xp*20)/3);
+    const el=document.createElement('div'); el.className='skill';
+    el.innerHTML=`<span class="skill-name">${CATS[c].name}</span><span class="skill-lvl">Niveau ${cs.lvl}</span><div class="bar"><i style="width:${Math.max(4,pct)}%"></i></div>`;
+    sk.appendChild(el);
+  });
+  $('startMeta').textContent = `${S.settings.len} calculs, environ ${Math.max(1,Math.round(S.settings.len*12/60))} min`;
+}
+
+/* ================== Session ================== */
+let sess=null;
+function buildQueue(n){
+  const cats=CAT_ORDER.filter(c=>S.settings.cats[c]); if(!cats.length) return [];
+  // weight weaker categories slightly more
+  const w=cats.map(c=>{ const r=S.cats[c].recent; const acc=r.length? r.reduce((a,b)=>a+b,0)/r.length : .7; return 1+ (1-acc)*1.5; });
+  const out=[]; let last=null;
+  for(let i=0;i<n;i++){
+    let c, tries=0;
+    do{ let x=Math.random()*w.reduce((a,b)=>a+b,0); c=cats[cats.length-1]; for(let j=0;j<cats.length;j++){ x-=w[j]; if(x<=0){c=cats[j];break;} } tries++; }while(c===last && cats.length>1 && tries<5);
+    last=c; out.push(c);
+  }
+  return out;
+}
+function startSession(){
+  const queue=buildQueue(S.settings.len);
+  if(!queue.length){ toast('Active au moins un type de calcul dans les réglages.'); return; }
+  sess={queue, i:0, results:[], input:'', locked:false, cur:null, t0:0};
+  show('session'); nextQ();
+}
+function nextQ(){
+  if(sess.i>=sess.queue.length) return endSession();
+  const c=sess.queue[sess.i]; const lvl=S.cats[c].lvl;
+  let q; let guard=0; do{ q=CATS[c].gen(lvl); guard++; } while((!isFinite(q.a)) && guard<10);
+  sess.cur={...q,cat:c}; sess.input=''; sess.locked=false; sess.t0=performance.now();
+  $('qCat').textContent=CATS[c].short;
+  const qt=$('qText'); qt.innerHTML=q.q; qt.classList.toggle('long',!!q.long);
+  $('ansUnit').textContent=q.unit||'';
+  $('answer').className='answer'; $('feedback').innerHTML=''; $('caret').style.display='';
+  $('goBtn').textContent='Valider';
+  $('count').textContent=`${sess.i+1}/${sess.queue.length}`;
+  $('prog').style.width=(sess.i/sess.queue.length*100)+'%';
+  renderInput();
+}
+function renderInput(){
+  const v=$('ansVal'); const s=sess.input;
+  if(!s){ v.textContent='0'; v.classList.add('empty'); return; }
+  v.classList.remove('empty');
+  const neg=s.startsWith('-'); let body=neg?s.slice(1):s;
+  let [ip,dp]=body.split(','); ip=(ip||'').replace(/\B(?=(\d{3})+(?!\d))/g,'\u2009');
+  v.textContent=(neg?'−':'')+ip+(dp!==undefined?','+dp:'');
+}
+function press(k){
+  if(!sess) return;
+  if(k==='go') return sess.locked ? advance() : submit();
+  if(sess.locked) return;
+  let s=sess.input;
+  if(k==='del') s=s.slice(0,-1);
+  else if(k==='-') s = s.startsWith('-')? s.slice(1) : '-'+s;
+  else if(k===','){ if(!s.includes(',')) s = (s===''||s==='-')? s+'0,' : s+','; }
+  else if(/\d/.test(k)){ if(s.replace(/[-,]/g,'').length<12) s = (s==='0')? k : (s==='-0'?'-'+k:s+k); }
+  sess.input=s; renderInput();
+}
+function submit(){
+  const raw=sess.input; if(!raw||raw==='-') return toast('Tape ta réponse, ou appuie sur « Je passe ».');
+  check(parseFloat(raw.replace(',','.')));
+}
+function skip(){ if(!sess||sess.locked) return; check(NaN,true); }
+function check(val,skipped=false){
+  const q=sess.cur, ms=performance.now()-sess.t0;
+  const tol=(q.tol||0)+1e-6*Math.max(1,Math.abs(q.a));
+  const ok=!skipped && Math.abs(val-q.a)<=tol;
+  sess.locked=true; $('caret').style.display='none';
+  sess.results.push({cat:q.cat, ok, ms:Math.min(ms,60000), q:q.q, a:q.a, unit:q.unit||''});
+  // update category level
+  const cs=S.cats[q.cat]; cs.n++; if(ok) cs.ok++;
+  cs.recent=[...cs.recent, ok?1:0].slice(-8);
+  if(ok){ cs.xp++; if(cs.xp>=5 && cs.lvl<3){ cs.lvl++; cs.xp=0; } }
+  else { cs.xp=Math.max(0,cs.xp-2); if(cs.recent.slice(-4).filter(x=>!x).length>=3 && cs.lvl>1){ cs.lvl--; cs.xp=2; cs.recent=[]; } }
+  S.total++; if(ok) S.correct++; S.ms+=Math.min(ms,60000);
+
+  const ans=$('answer');
+  if(ok){
+    ans.classList.add('ok');
+    $('feedback').innerHTML=`<div class="fb-answer">Juste, en ${fmt(ms/1000,1)} s</div>`;
+    setTimeout(()=>{ if(sess&&sess.locked) advance(); },650);
+  } else {
+    ans.classList.add('ko');
+    if(skipped){ $('ansVal').textContent='—'; $('ansVal').classList.remove('empty'); }
+    $('feedback').innerHTML=`<div class="fb-answer">Réponse : ${fmt(q.a)}${q.unit?' '+q.unit:''}</div><div class="fb-tip">${q.tip}</div>`;
+    $('goBtn').textContent='Continuer';
+  }
+}
+function advance(){ sess.i++; nextQ(); }
+function endSession(){
+  const r=sess.results, ok=r.filter(x=>x.ok).length, n=r.length;
+  const k=dayKey(); S.days[k]=(S.days[k]||0)+1;
+  // trim old days (keep ~1 year)
+  const keys=Object.keys(S.days).sort(); if(keys.length>400) keys.slice(0,keys.length-400).forEach(x=>delete S.days[x]);
+  save();
+  $('prog').style.width='100%';
+  $('rScore').innerHTML=`${ok}<span>/${n}</span>`;
+  const acc=ok/n;
+  $('rMsg').textContent = acc===1? 'Sans faute. Le niveau monte avec toi.' : acc>=.8? 'Très solide. Revois les deux ou trois réflexes ci‑dessous.' : acc>=.5? 'Correct. Les astuces données en session sont la clé pour accélérer.' : 'Séance utile : les erreurs d’aujourd’hui sont les automatismes de demain.';
+  $('rAcc').textContent=Math.round(acc*100)+' %';
+  $('rTime').textContent=fmt(r.reduce((a,b)=>a+b.ms,0)/n/1000,1)+' s';
+  const st=streak(); $('rStreak').textContent=st+(st>1?' jours':' jour');
+  const wrong=r.filter(x=>!x.ok);
+  $('rMistakes').innerHTML = wrong.length ? `<div class="r-title">À revoir</div><div class="r-list" style="margin-top:10px">${wrong.map(w=>`<div class="r-item"><span class="q">${w.q}</span><span class="a">${fmt(w.a)}${w.unit?' '+w.unit:''}</span></div>`).join('')}</div>` : '';
+  sess=null;
+  show('results');
+}
+
+/* ================== Events ================== */
+$('startBtn').onclick=startSession;
+$('againBtn').onclick=startSession;
+$('homeBtn').onclick=()=>{ renderHome(); show('home'); };
+$('quitBtn').onclick=()=>{ if(sess && sess.results.length){ save(); } sess=null; renderHome(); show('home'); };
+$('pad').addEventListener('click',e=>{ const b=e.target.closest('[data-k]'); if(b) press(b.dataset.k); });
+document.querySelector('.pad-row').addEventListener('click',e=>{ const b=e.target.closest('[data-k]'); if(b) press(b.dataset.k); });
+// Long-press on delete = skip question
+(()=>{ const del=document.querySelector('[data-k="del"]'); let t; 
+  del.addEventListener('pointerdown',()=>{ t=setTimeout(()=>{ t=null; skip(); },650); });
+  ['pointerup','pointerleave','pointercancel'].forEach(ev=>del.addEventListener(ev,()=>clearTimeout(t)));
+})();
+// Add explicit skip affordance in feedback zone
+const skipBtn=document.createElement('button'); skipBtn.className='key skip'; skipBtn.textContent='Je passe';
+skipBtn.style.cssText='height:auto;border:0;background:none;padding:6px 0;display:inline-block';
+skipBtn.onclick=skip;
+const _nextQ=nextQ;
+nextQ=function(){ _nextQ(); if(sess && sess.i<sess.queue.length){ const f=$('feedback'); f.innerHTML=''; f.appendChild(skipBtn); } };
+
+document.addEventListener('keydown',e=>{
+  if($('sheet').classList.contains('on')){ if(e.key==='Escape') closeSheet(); return; }
+  if(!sess) { if(e.key==='Enter' && document.querySelector('#home.on')) startSession(); return; }
+  if(/^\d$/.test(e.key)) press(e.key);
+  else if(e.key===','||e.key==='.') press(',');
+  else if(e.key==='-') press('-');
+  else if(e.key==='Backspace') press('del');
+  else if(e.key==='Enter') press('go');
+  else if(e.key==='Escape') $('quitBtn').click();
+  else return;
+  e.preventDefault();
+  const b=document.querySelector(`[data-k="${e.key===','||e.key==='.'?',':e.key==='Backspace'?'del':e.key==='Enter'?'go':e.key}"]`);
+  if(b){ b.classList.add('press'); setTimeout(()=>b.classList.remove('press'),100); }
+});
+
+/* ================== Settings ================== */
+function openSheet(){ renderSettings(); $('scrim').classList.add('on'); $('sheet').classList.add('on'); }
+function closeSheet(){ $('scrim').classList.remove('on'); $('sheet').classList.remove('on'); renderHome(); }
+$('openSettings').onclick=openSheet; $('scrim').onclick=closeSheet;
+function renderSettings(){
+  document.querySelectorAll('#lenSeg button').forEach(b=>b.setAttribute('aria-pressed', String(+b.dataset.v===S.settings.len)));
+  const ct=$('catToggles'); ct.innerHTML='';
+  CAT_ORDER.forEach(c=>{
+    const row=document.createElement('div'); row.className='toggle-row';
+    row.innerHTML=`<span>${CATS[c].name}</span><button class="switch" role="switch" aria-checked="${!!S.settings.cats[c]}" aria-label="${CATS[c].name}"></button>`;
+    row.querySelector('button').onclick=(e)=>{
+      const on=!S.settings.cats[c];
+      if(!on && CAT_ORDER.filter(x=>S.settings.cats[x]).length===1) return toast('Garde au moins un type de calcul.');
+      S.settings.cats[c]=on; e.currentTarget.setAttribute('aria-checked',String(on)); save();
+    };
+    ct.appendChild(row);
+  });
+  $('remTime').value=S.settings.rem||'08:30';
+}
+$('lenSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; S.settings.len=+b.dataset.v; save(); renderSettings(); });
+$('remTime').addEventListener('change',e=>{ S.settings.rem=e.target.value||'08:30'; save(); });
+$('icsBtn').onclick=()=>{
+  const [h,m]=(S.settings.rem||'08:30').split(':');
+  const d=new Date(); const ds=`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+  const stamp=new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+/,'');
+  const ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Delta//Calcul mental//FR','CALSCALE:GREGORIAN','BEGIN:VEVENT',
+    `UID:delta-${Date.now()}@delta`,`DTSTAMP:${stamp}`,`DTSTART:${ds}T${h}${m}00`,'DURATION:PT5M','RRULE:FREQ=DAILY',
+    'SUMMARY:Delta : 2 minutes de calcul mental','DESCRIPTION:Une session courte pour garder ta série.',
+    'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:Delta : ta session du jour','TRIGGER:PT0M','END:VALARM','END:VEVENT','END:VCALENDAR'].join('\r\n');
+  const a=document.createElement('a');
+  a.href='data:text/calendar;charset=utf-8,'+encodeURIComponent(ics);
+  a.download='rappel-delta.ics';
+  document.body.appendChild(a); a.click(); a.remove();
+  toast('Ouvre le fichier pour l’ajouter à ton agenda.');
+};
+$('resetBtn').onclick=()=>{
+  if(!confirm('Effacer la série, les niveaux et toutes les statistiques ?')) return;
+  const keep=S.settings; S=defaultState(); S.settings=keep; save(); renderSettings(); toast('Statistiques effacées.');
+};
+
+renderHome();
+
+/* ================== Offline (service worker) ================== */
+if('serviceWorker' in navigator && location.protocol!=='file:'){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+})();
+</script>
+</body>
+</html>
