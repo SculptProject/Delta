@@ -1,6 +1,6 @@
 // Delta — service worker : l’app fonctionne hors ligne après la première visite.
 // Change la version à chaque mise à jour du site pour forcer le rafraîchissement.
-const VERSION = 'delta-v2';
+const VERSION = 'delta-v3';
 const CORE = [
   './',
   './index.html',

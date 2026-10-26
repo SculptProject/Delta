@@ -57,13 +57,19 @@ Dans l’app, ouvre les **Réglages**, choisis une heure, puis touche **Ajouter 
 
 Variante plus intégrée : l’app **Raccourcis** d’iOS, onglet **Automatisation**, « Heure de la journée », action « Ouvrir l’URL » avec l’adresse de ton app.
 
+## Calculs dictés
+
+Dans les **Réglages**, section « Calculs dictés » : « Voix et texte » lit chaque calcul tout en l’affichant, « Audio seul » le masque jusqu’à ta réponse pour t’entraîner sans regarder l’écran. Une bonne réponse déclenche un petit son ; une erreur est suivie de la bonne réponse et de l’astuce, lues à voix haute. Le bouton « Réécouter » relit le calcul.
+
+Pour une voix plus naturelle sur iPhone : Réglages → Accessibilité → Contenu énoncé → Voix → Français, puis télécharge une voix « améliorée ». Si tu n’entends rien, vérifie le volume et le bouton silencieux.
+
 ## Tes données
 
 Tout est stocké localement sur ton téléphone (dans le stockage de Safari). Rien n’est envoyé nulle part. Attention : supprimer l’icône de l’écran d’accueil ou effacer les données de Safari efface aussi ta série et tes statistiques.
 
 ## Mettre à jour l’app
 
-Modifie les fichiers, envoie‑les sur GitHub, puis change la valeur de `VERSION` en haut de `sw.js` (par exemple `delta-v3`). À l’ouverture suivante (parfois la deuxième), l’app installée récupère la nouvelle version.
+Modifie les fichiers, envoie‑les sur GitHub, puis change la valeur de `VERSION` en haut de `sw.js` (par exemple `delta-v4`). À l’ouverture suivante (parfois la deuxième), l’app installée récupère la nouvelle version.
 
 ## Tester en local
 
