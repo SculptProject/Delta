@@ -2,26 +2,27 @@
 
 Quelques minutes de calcul mental par jour, orienté finance : additions, multiplications, divisions, pourcentages, puissances et intérêts composés, fractions et ratios. La difficulté s’adapte à tes résultats et une série de jours consécutifs te pousse à revenir chaque jour.
 
-![Icône](icons/icon-512.png)
+![Icône](icon-512.png)
 
 ## Contenu du dossier
 
 ```
 delta/
-├── index.html              L’application complète (HTML, CSS et JS dans un seul fichier)
-├── manifest.webmanifest    Nom, couleurs et icônes quand l’app est installée
-├── sw.js                   Service worker : fonctionnement hors ligne
-├── icons/
-│   ├── icon.svg            Icône source (vectorielle)
-│   ├── apple-touch-icon.png  180 × 180, utilisée par l’iPhone
-│   ├── icon-192.png
-│   ├── icon-512.png
-│   ├── icon-maskable-512.png Version avec marges pour Android
-│   └── icon-1024.png       Grand format (App Store, réseaux…)
-├── .nojekyll               Indique à GitHub Pages de servir les fichiers tels quels
+├── index.html                L’application complète (HTML, CSS et JS dans un seul fichier)
+├── manifest.webmanifest      Nom, couleurs et icônes quand l’app est installée
+├── sw.js                     Service worker : fonctionnement hors ligne
+├── apple-touch-icon.png      Icône de l’iPhone (180 × 180)
+├── icon.svg                  Icône source (vectorielle)
+├── icon-192.png
+├── icon-512.png
+├── icon-maskable-512.png     Version avec marges pour Android
+├── icon-1024.png             Grand format
+├── .nojekyll                 Indique à GitHub Pages de servir les fichiers tels quels
 ├── LICENSE
 └── README.md
 ```
+
+Tous les fichiers sont à la racine : aucun sous-dossier à recréer sur GitHub.
 
 ## Mettre l’app en ligne avec GitHub Pages (gratuit)
 
@@ -43,6 +44,9 @@ delta/
 
 ## L’installer sur l’iPhone
 
+Avant tout, vérifie que l’icône est bien en ligne : ouvre `https://TON-PSEUDO.github.io/delta/apple-touch-icon.png` dans Safari. Tu dois voir l’icône Delta. Si tu obtiens une page 404, le fichier n’a pas été envoyé sur GitHub ou le déploiement n’est pas terminé.
+
+
 1. Ouvre l’adresse ci‑dessus dans **Safari** (pas Chrome : seul Safari permet l’installation sur iOS).
 2. Touche le bouton **Partager** (le carré avec la flèche), puis **Sur l’écran d’accueil**.
 3. Valide : l’icône Delta apparaît sur ton écran d’accueil. L’app s’ouvre en plein écran, sans barre d’adresse, et fonctionne même hors ligne après la première ouverture.
@@ -59,7 +63,7 @@ Tout est stocké localement sur ton téléphone (dans le stockage de Safari). Ri
 
 ## Mettre à jour l’app
 
-Modifie les fichiers, envoie‑les sur GitHub, puis change la valeur de `VERSION` en haut de `sw.js` (par exemple `delta-v2`). À l’ouverture suivante (parfois la deuxième), l’app installée récupère la nouvelle version.
+Modifie les fichiers, envoie‑les sur GitHub, puis change la valeur de `VERSION` en haut de `sw.js` (par exemple `delta-v3`). À l’ouverture suivante (parfois la deuxième), l’app installée récupère la nouvelle version.
 
 ## Tester en local
 

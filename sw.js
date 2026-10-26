@@ -1,14 +1,14 @@
 // Delta — service worker : l’app fonctionne hors ligne après la première visite.
 // Change la version à chaque mise à jour du site pour forcer le rafraîchissement.
-const VERSION = 'delta-v1';
+const VERSION = 'delta-v2';
 const CORE = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './icons/icon.svg',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './icons/apple-touch-icon.png'
+  './icon.svg',
+  './icon-192.png',
+  './icon-512.png',
+  './apple-touch-icon.png'
 ];
 
 self.addEventListener('install', (e) => {
